@@ -1,0 +1,7 @@
+sceneSetups:
+- path: Assets/Scenes/prot1.unity
+  isLoaded: 1
+  isActive: 0
+- path: Assets/Scenes/tiroteio1.unity
+  isLoaded: 1
+  isActive: 1
