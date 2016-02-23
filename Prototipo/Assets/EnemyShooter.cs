@@ -7,6 +7,7 @@ public class EnemyShooter : MonoBehaviour
 	public GameObject tommyGun;
 	public GameObject gunTip;
 	public GameObject bullet;
+	public GameObject hitCollider;
 	public float fireRate;
 	public int totalBullets;
 	public float reloadingTime;
@@ -19,6 +20,7 @@ public class EnemyShooter : MonoBehaviour
 	private int currentBullet;
 	private float currentReloadingTime;
 
+	private Vector2 initialPos;
 
 	private enum State
 	{
@@ -34,10 +36,14 @@ public class EnemyShooter : MonoBehaviour
 		gunTipenderer = gunTip.GetComponent<LineRenderer> ();
 		kane = GameObject.Find ("Robot");
 		currentBullet = totalBullets;
+		initialPos = transform.position;
 	}
 
 	void Update ()
 	{
+		initialPos.y = transform.position.y;
+		transform.position = initialPos;
+
 		switch (currentState) {
 		case State.UNDER_COVER:
 			UnderCover ();
@@ -59,6 +65,7 @@ public class EnemyShooter : MonoBehaviour
 			this.currentState = State.SHOOTING;
 			gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
 			gun.SetActive (true);
+			hitCollider.SetActive (true);
 		}
 
 	}
@@ -72,10 +79,12 @@ public class EnemyShooter : MonoBehaviour
 		aimAng = Mathf.Rad2Deg * Mathf.Atan2 (transform.position.y - kane.transform.position.y, 
 			transform.position.x - kane.transform.position.x);
 
-		Debug.Log (aimAng);
-
 		gunTipenderer.SetPosition (1, new Vector3 (transform.position.x + Mathf.Cos (Mathf.Deg2Rad * (180 + aimAng)) * 20,
 			transform.position.y + Mathf.Sin (Mathf.Deg2Rad * (aimAng + 180)) * 20, 0));
+
+		if (Vector3.Distance (transform.position, kane.transform.position) > 10f) {
+			return;
+		}
 
 		lastBulletTime += Time.deltaTime;
 		if (lastBulletTime > 1 / fireRate) {					
@@ -87,6 +96,7 @@ public class EnemyShooter : MonoBehaviour
 				currentBullet = totalBullets;
 				this.currentState = State.UNDER_COVER;
 				gun.SetActive (false);
+				hitCollider.SetActive (false);
 			}
 		}
 		

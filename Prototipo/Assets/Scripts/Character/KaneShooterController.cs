@@ -8,10 +8,12 @@ public class KaneShooterController : MonoBehaviour
 	public GameObject tommyGun;
 	public GameObject gunTip;
 	public GameObject bullet;
+	public GameObject hitCollider;
 	public CameraController camera;
 	[Tooltip ("balas por segundo")]
 	public float fireRate;
 	public float recoil;
+	public float reloadTime;
 
 
 	private LineRenderer gunTipenderer;
@@ -23,6 +25,9 @@ public class KaneShooterController : MonoBehaviour
 	private float lastBulletTime = 10;
 	private GameObject particles;
 	private bool invertedAim = false;
+	private int currentAmmo;
+
+	private float currentReloadTime;
 
 	private enum State
 	{
@@ -35,8 +40,10 @@ public class KaneShooterController : MonoBehaviour
 
 	void Start ()
 	{
+		currentAmmo = GameManager.instance.initialAmmo;
 		gunTipenderer = gunTip.GetComponent<LineRenderer> ();
 		particles = tommyGun.transform.GetChild (0).gameObject;
+		currentReloadTime = 0;
 	}
 
 	void Update ()
@@ -58,6 +65,15 @@ public class KaneShooterController : MonoBehaviour
 
 	void UnderCover ()
 	{
+		if (currentAmmo <= 0) {
+			currentReloadTime += Time.deltaTime;
+			if (currentReloadTime > reloadTime) {
+				currentAmmo = GameManager.instance.Reload ();
+				currentReloadTime = 0;
+			}
+			return;
+		}
+		
 		if (Input.GetKey (KeyCode.RightArrow)) {
 			Quaternion quart = new Quaternion (0, 0, 0, 0);
 			this.transform.localRotation = quart;
@@ -85,6 +101,7 @@ public class KaneShooterController : MonoBehaviour
 			gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
 			this.currentState = State.SHOOTING;
 			gun.SetActive (true);
+			hitCollider.SetActive (true);
 		}
 	}
 
@@ -110,7 +127,8 @@ public class KaneShooterController : MonoBehaviour
 
 			if (Input.GetKey (KeyCode.Space)) {	
 				particles.SetActive (true);
-				if (lastBulletTime > 1 / fireRate) {					
+				if (lastBulletTime > 1 / fireRate && currentAmmo > 0) {
+					currentAmmo = GameManager.instance.DecreaseAmmo ();
 					GameObject go = (GameObject)Instantiate (bullet, transform.position, Quaternion.identity);
 					go.GetComponent<BulletController> ().SetAng ((invertedAim ? 180 - aimAng : aimAng));
 					lastBulletTime = 0;
@@ -135,6 +153,7 @@ public class KaneShooterController : MonoBehaviour
 			}
 		} else {						
 			particles.SetActive (false);
+			hitCollider.SetActive (false);
 			this.currentState = State.UNDER_COVER;
 			gun.SetActive (false);
 		}
@@ -155,6 +174,7 @@ public class KaneShooterController : MonoBehaviour
 		transform.position = Vector2.Lerp (transform.position, this.target, 0.1f);
 		if (Vector2.Distance (transform.position, target) < 0.1f) {
 			this.currentState = State.UNDER_COVER;
+			hitCollider.SetActive (false);
 			this.rigidBody.gravityScale = 1;
 		}
 	}
@@ -168,6 +188,7 @@ public class KaneShooterController : MonoBehaviour
 		
 		this.cover = _cover;
 		this.currentState = State.TRANSITIONING;
+		hitCollider.SetActive (true);
 		this.target = new Vector2 (cover.transform.position.x, cover.transform.position.y);
 
 		rigidBody = GetComponent<Rigidbody2D> ();

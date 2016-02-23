@@ -17,7 +17,7 @@ public class ShooterDetector : MonoBehaviour
 
 	void OnTriggerEnter2D (Collider2D col)
 	{
-		if (col.gameObject.tag == "Kane") {
+		if (col.gameObject.tag == "Player") {
 			bool[] v = { false, true };
 			col.gameObject.GetComponent<PlayerController> ().ChangeMode (v);
 			col.gameObject.GetComponent<KaneShooterController> ().NewCover (firstCover.GetComponent<CoverController> ());
