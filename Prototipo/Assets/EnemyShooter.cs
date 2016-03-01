@@ -34,7 +34,7 @@ public class EnemyShooter : MonoBehaviour
 	{
 		currentState = State.UNDER_COVER;
 		gunTipenderer = gunTip.GetComponent<LineRenderer> ();
-		kane = GameObject.Find ("Robot");
+		kane = GameObject.Find ("Kane");
 		currentBullet = totalBullets;
 		initialPos = transform.position;
 	}

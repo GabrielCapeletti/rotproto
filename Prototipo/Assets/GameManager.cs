@@ -1,9 +1,11 @@
 ﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
 	public HUDAmmo hudAmmo;
+	public HUDLife hudLife;
 
 	public static GameManager instance;
 
@@ -27,6 +29,10 @@ public class GameManager : MonoBehaviour
 	public int DecreaseLife ()
 	{
 		currentLife--;
+		hudLife.RemoveLife ();
+		if (currentLife < 0)
+			SceneManager.LoadScene (0);
+		
 		return currentLife;
 	}
 

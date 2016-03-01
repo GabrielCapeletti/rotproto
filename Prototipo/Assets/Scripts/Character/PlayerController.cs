@@ -21,6 +21,8 @@ public class PlayerController : MonoBehaviour
 
 		this.robotMode.enabled = this.starts [0];
 		this.shooterMode.enabled = this.starts [1];
+
+		this.shooterMode.start ();
 	}
 
 	public void ChangeMode (bool[] v)

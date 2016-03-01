@@ -17,6 +17,7 @@ public class KaneHitController : MonoBehaviour
 	{
 		Debug.Log (col.gameObject.tag);
 		if (col.gameObject.tag == "EnemyBullet") {
+			Debug.Log ("tAKE DAMAGE");
 			GameManager.instance.DecreaseLife ();
 		}
 	}

@@ -15,7 +15,6 @@ public class KaneShooterController : MonoBehaviour
 	public float recoil;
 	public float reloadTime;
 
-
 	private LineRenderer gunTipenderer;
 	private Vector2 target;
 	private Animator animator;
@@ -38,8 +37,15 @@ public class KaneShooterController : MonoBehaviour
 
 	private State currentState;
 
+	public void start ()
+	{
+		this.Start ();
+	}
+
+
 	void Start ()
 	{
+		animator = GetComponent<Animator> ();
 		currentAmmo = GameManager.instance.initialAmmo;
 		gunTipenderer = gunTip.GetComponent<LineRenderer> ();
 		particles = tommyGun.transform.GetChild (0).gameObject;
@@ -98,10 +104,53 @@ public class KaneShooterController : MonoBehaviour
 				NewCover (cover.previous);
 			}
 		} else if (Input.GetKey (KeyCode.LeftShift)) {			
-			gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
-			this.currentState = State.SHOOTING;
-			gun.SetActive (true);
-			hitCollider.SetActive (true);
+			this.GoToShooting ();
+		}
+	}
+
+	public void GoToShooting ()
+	{
+		gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
+		gun.SetActive (true);
+		hitCollider.SetActive (true);
+		this.currentState = State.SHOOTING;		
+	}
+
+	public void AimUp ()
+	{
+		aimAng += 1f;
+		if (aimAng >= 85) {
+			aimAng = 84;
+		} else {
+			tommyGun.transform.Rotate (new Vector3 (0, 0, 1));
+		}
+	}
+
+	public void AimDown ()
+	{
+		aimAng -= 1f;
+		if (aimAng <= -85) {
+			aimAng = -84;
+		} else {
+			tommyGun.transform.Rotate (new Vector3 (0, 0, -1));
+		}
+	}
+
+	public void ShootingProjectile ()
+	{
+		particles.SetActive (true);
+		if (lastBulletTime > 1 / fireRate && currentAmmo > 0) {
+			currentAmmo = GameManager.instance.DecreaseAmmo ();
+			GameObject go = (GameObject)Instantiate (bullet, transform.position, Quaternion.identity);
+			go.GetComponent<BulletController> ().SetAng ((invertedAim ? 180 - aimAng : aimAng));
+			lastBulletTime = 0;
+			camera.ShakeCamera ();
+			aimAng += recoil;
+			if (aimAng >= 85) {
+				aimAng = 84;
+			} else {
+				tommyGun.transform.Rotate (new Vector3 (0, 0, recoil));
+			}
 		}
 	}
 
@@ -109,37 +158,13 @@ public class KaneShooterController : MonoBehaviour
 	{		
 		if (Input.GetKey (KeyCode.LeftShift)) {			
 			if (Input.GetKey (KeyCode.UpArrow)) {
-				aimAng += 1f;
-				if (aimAng >= 85) {
-					aimAng = 84;
-				} else {
-					tommyGun.transform.Rotate (new Vector3 (0, 0, 1));
-				}
-
+				this.AimUp ();
 			} else if (Input.GetKey (KeyCode.DownArrow)) {
-				aimAng -= 1f;
-				if (aimAng <= -85) {
-					aimAng = -84;
-				} else {
-					tommyGun.transform.Rotate (new Vector3 (0, 0, -1));
-				}
+				this.AimDown ();
 			}
 
 			if (Input.GetKey (KeyCode.Space)) {	
-				particles.SetActive (true);
-				if (lastBulletTime > 1 / fireRate && currentAmmo > 0) {
-					currentAmmo = GameManager.instance.DecreaseAmmo ();
-					GameObject go = (GameObject)Instantiate (bullet, transform.position, Quaternion.identity);
-					go.GetComponent<BulletController> ().SetAng ((invertedAim ? 180 - aimAng : aimAng));
-					lastBulletTime = 0;
-					camera.ShakeCamera ();
-					aimAng += recoil;
-					if (aimAng >= 85) {
-						aimAng = 84;
-					} else {
-						tommyGun.transform.Rotate (new Vector3 (0, 0, recoil));
-					}
-				}
+				this.ShootingProjectile ();
 			} else {
 				particles.SetActive (false);
 			}
@@ -152,26 +177,26 @@ public class KaneShooterController : MonoBehaviour
 					transform.position.y + Mathf.Sin (Mathf.Deg2Rad * (aimAng)) * 10, 0));
 			}
 		} else {						
-			particles.SetActive (false);
-			hitCollider.SetActive (false);
-			this.currentState = State.UNDER_COVER;
-			gun.SetActive (false);
+			this.GoUndercover ();
 		}
+
 		if (lastBulletTime < 10) {
 			lastBulletTime += Time.deltaTime;
 		}
-
-
 	}
 
-	private void ShootProjectil ()
+	public void GoUndercover ()
 	{
-		
+		particles.SetActive (false);
+		hitCollider.SetActive (false);
+		this.currentState = State.UNDER_COVER;
+		gun.SetActive (false);
 	}
 
 	public void Transitioning ()
 	{		
 		transform.position = Vector2.Lerp (transform.position, this.target, 0.1f);
+		animator.Play ("rolling");
 		if (Vector2.Distance (transform.position, target) < 0.1f) {
 			this.currentState = State.UNDER_COVER;
 			hitCollider.SetActive (false);
@@ -193,8 +218,7 @@ public class KaneShooterController : MonoBehaviour
 
 		rigidBody = GetComponent<Rigidbody2D> ();
 		rigidBody.velocity = Vector2.zero;
-		animator = GetComponent<Animator> ();
-		animator.PlayInFixedTime ("idle");
+		animator.Play ("idle");
 	}
 
 }

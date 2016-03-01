@@ -17,7 +17,7 @@ public class EnemyHitController : MonoBehaviour
 	void OnCollisionEnter2D (Collision2D col)
 	{
 		if (col.gameObject.tag == "KaneBullet") {
-			//Destroy (transform.parent.gameObject);
+			Destroy (transform.parent.gameObject);
 		}
 	}
 }
