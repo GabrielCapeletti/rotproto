@@ -11,11 +11,14 @@ public class RobotController : MonoBehaviour
 	}
 
 	public float speedX;
+	public int playerNumber;
 
 	private Animator animator;
 	private State currentState;
 	private Vector2 movementVector;
 	private Rigidbody2D rigidBody;
+	private SpriteRenderer renderers;
+	private int lookDirection;
 
 	void Start ()
 	{
@@ -23,6 +26,8 @@ public class RobotController : MonoBehaviour
 		animator = GetComponent<Animator> ();
 		movementVector = Vector2.zero;
 		rigidBody = GetComponent<Rigidbody2D> ();
+		renderers = GetComponent<SpriteRenderer> ();
+		lookDirection = ((renderers.flipX) ? -1 : 1);
 	}
 
 	void Update ()
@@ -46,7 +51,7 @@ public class RobotController : MonoBehaviour
 	void Idle ()
 	{
 		movementVector = Vector2.zero;
-		if (Input.GetKey (KeyCode.RightArrow) || Input.GetKey (KeyCode.LeftArrow) || Input.GetKey (KeyCode.Space)) {			
+		if (Input.GetAxisRaw ("Horizontal" + playerNumber) != 0 || Input.GetButtonDown ("Jump" + playerNumber)) {			
 			currentState = State.RUN;
 			animator.PlayInFixedTime ("running");
 		}
@@ -54,13 +59,17 @@ public class RobotController : MonoBehaviour
 
 	void Run ()
 	{
-		if (Input.GetKey (KeyCode.RightArrow)) {
+		if (Input.GetAxisRaw ("Horizontal" + playerNumber) > 0) {
 			movementVector = new Vector2 (speedX, 0);
-			transform.localScale = new Vector2 (1, 1);
-		} else if (Input.GetKey (KeyCode.LeftArrow)) {
+			Quaternion quart = new Quaternion (0, 0, 0, 0);
+			this.transform.localRotation = quart;
+			//transform.localScale = new Vector2 (lookDirection * 1, 1);
+		} else if (Input.GetAxisRaw ("Horizontal" + playerNumber) < 0) {
 			movementVector = new Vector2 (-speedX, 0);
-			transform.localScale = new Vector2 (-1, 1);
-		} else if (Input.GetKey (KeyCode.Space)) {
+			Quaternion quart = new Quaternion (0, 180, 0, 0);
+			this.transform.localRotation = quart;
+			//transform.localScale = new Vector2 (-1 * lookDirection, 1);
+		} else if (Input.GetButtonDown ("Jump" + playerNumber)) {
 			rigidBody.AddForce (new Vector2 (0, 10));
 		} else {
 			currentState = State.IDLE;

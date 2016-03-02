@@ -20,21 +20,20 @@ public class CameraController : MonoBehaviour
 	}
 
 	void Update ()
-	{		
-		if (!hasEntrance) {		
-			Vector3 target = new Vector3 (robot.transform.position.x, robot.transform.position.y, -10);
-			if (shaking) {
-				target += new Vector3 (Random.Range (-shakeRange, shakeRange), Random.Range (-shakeRange, shakeRange), 0);
-				currentTime += Time.deltaTime;	
-				if (currentTime > 0.2f) {
-					shaking = false;
-				}
+	{	
+		Vector3 target = new Vector3 (robot.transform.position.x, robot.transform.position.y, -10);
+		if (shaking) {
+			target += new Vector3 (Random.Range (-shakeRange, shakeRange), Random.Range (-shakeRange, shakeRange), 0);
+			currentTime += Time.deltaTime;	
+			if (currentTime > 0.2f) {
+				shaking = false;
 			}
-			this.transform.position = target;
-		} else {
-			StartCoroutine (EnteringScene ());
 		}
-		
+		this.transform.position = target;
+
+		if (hasEntrance) {		
+			StartCoroutine (EnteringScene ());
+		}		
 	}
 
 	public IEnumerator EnteringScene ()

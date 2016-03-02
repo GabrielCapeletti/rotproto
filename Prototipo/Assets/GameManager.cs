@@ -26,28 +26,4 @@ public class GameManager : MonoBehaviour
 		instance = this;
 	}
 
-	public int DecreaseLife ()
-	{
-		currentLife--;
-		hudLife.RemoveLife ();
-		if (currentLife < 0)
-			SceneManager.LoadScene (0);
-		
-		return currentLife;
-	}
-
-	public int DecreaseAmmo ()
-	{
-		hudAmmo.RemoveBullet ();
-		currentAmmo--;
-		return currentAmmo;
-	}
-
-	public int Reload ()
-	{
-		currentAmmo = initialAmmo;
-		hudAmmo.Reload ();
-		return initialAmmo;
-	}
-
 }

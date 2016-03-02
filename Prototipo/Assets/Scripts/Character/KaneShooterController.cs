@@ -9,11 +9,18 @@ public class KaneShooterController : MonoBehaviour
 	public GameObject gunTip;
 	public GameObject bullet;
 	public GameObject hitCollider;
+	public HUDAmmo hudAmmo;
+	public HUDLife hudLife;
 	public CameraController camera;
+	public int initialAmmo;
 	[Tooltip ("balas por segundo")]
 	public float fireRate;
 	public float recoil;
 	public float reloadTime;
+	public int playerNumber;
+
+	public int initialLife;
+	private int currentLife;
 
 	private LineRenderer gunTipenderer;
 	private Vector2 target;
@@ -25,7 +32,7 @@ public class KaneShooterController : MonoBehaviour
 	private GameObject particles;
 	private bool invertedAim = false;
 	private int currentAmmo;
-
+	private int lookDirection;
 	private float currentReloadTime;
 
 	private enum State
@@ -50,6 +57,21 @@ public class KaneShooterController : MonoBehaviour
 		gunTipenderer = gunTip.GetComponent<LineRenderer> ();
 		particles = tommyGun.transform.GetChild (0).gameObject;
 		currentReloadTime = 0;
+		lookDirection = ((this.GetComponent<SpriteRenderer> ().flipX) ? 1 : -1);
+	}
+
+	public int DecreaseAmmo ()
+	{
+		hudAmmo.RemoveBullet ();
+		currentAmmo--;
+		return currentAmmo;
+	}
+
+	public int Reload ()
+	{
+		currentAmmo = initialAmmo;
+		hudAmmo.Reload ();
+		return initialAmmo;
 	}
 
 	void Update ()
@@ -74,36 +96,36 @@ public class KaneShooterController : MonoBehaviour
 		if (currentAmmo <= 0) {
 			currentReloadTime += Time.deltaTime;
 			if (currentReloadTime > reloadTime) {
-				currentAmmo = GameManager.instance.Reload ();
+				currentAmmo = Reload ();
 				currentReloadTime = 0;
 			}
 			return;
 		}
-		
-		if (Input.GetKey (KeyCode.RightArrow)) {
+		if (Input.GetAxisRaw ("Horizontal" + playerNumber) > 0) {
 			Quaternion quart = new Quaternion (0, 0, 0, 0);
 			this.transform.localRotation = quart;
 			invertedAim = false;
-			if (Input.GetKey (KeyCode.UpArrow)) {
+			if (Input.GetAxisRaw ("Vertical" + playerNumber) > 0) {
 				cover.nextUp.HighLight ();
-				if (Input.GetKey (KeyCode.Space)) {
+				if (Input.GetButtonDown ("Jump" + playerNumber)) {
 					NewCover (cover.nextUp);
 				}
 			} else {
 				cover.next.HighLight ();
-				if (Input.GetKey (KeyCode.Space)) {
+				if (Input.GetButtonDown ("Jump" + playerNumber)) {
 					NewCover (cover.next);
 				}
 			}
-		} else if (Input.GetKey (KeyCode.LeftArrow)) {
+		} else if (Input.GetAxisRaw ("Horizontal" + playerNumber) < 0) {
 			cover.previous.HighLight ();
-			Quaternion quart = new Quaternion (0, 180, 0, 0);
+			Quaternion quart = new Quaternion (0, lookDirection * 180, 0, 0);
 			this.transform.localRotation = quart;
 			invertedAim = true;
-			if (Input.GetKey (KeyCode.Space)) {
+			if (Input.GetButtonDown ("Jump" + playerNumber)) {
 				NewCover (cover.previous);
 			}
-		} else if (Input.GetKey (KeyCode.LeftShift)) {			
+
+		} else if (Input.GetAxisRaw ("Aim" + playerNumber) != 0) {			
 			this.GoToShooting ();
 		}
 	}
@@ -140,7 +162,7 @@ public class KaneShooterController : MonoBehaviour
 	{
 		particles.SetActive (true);
 		if (lastBulletTime > 1 / fireRate && currentAmmo > 0) {
-			currentAmmo = GameManager.instance.DecreaseAmmo ();
+			currentAmmo = DecreaseAmmo ();
 			GameObject go = (GameObject)Instantiate (bullet, transform.position, Quaternion.identity);
 			go.GetComponent<BulletController> ().SetAng ((invertedAim ? 180 - aimAng : aimAng));
 			lastBulletTime = 0;
@@ -156,14 +178,14 @@ public class KaneShooterController : MonoBehaviour
 
 	public void Shooting ()
 	{		
-		if (Input.GetKey (KeyCode.LeftShift)) {			
-			if (Input.GetKey (KeyCode.UpArrow)) {
+		if (Input.GetAxisRaw ("Aim" + playerNumber) != 0) {			
+			if (Input.GetAxisRaw ("Vertical" + playerNumber) > 0) {
 				this.AimUp ();
-			} else if (Input.GetKey (KeyCode.DownArrow)) {
+			} else if (Input.GetAxisRaw ("Vertical" + playerNumber) < 0) {
 				this.AimDown ();
 			}
 
-			if (Input.GetKey (KeyCode.Space)) {	
+			if (Input.GetAxisRaw ("Fire1" + playerNumber) > 0) {	
 				this.ShootingProjectile ();
 			} else {
 				particles.SetActive (false);
@@ -192,6 +214,18 @@ public class KaneShooterController : MonoBehaviour
 		this.currentState = State.UNDER_COVER;
 		gun.SetActive (false);
 	}
+
+	public int DecreaseLife ()
+	{
+		currentLife--;
+		hudLife.RemoveLife ();
+
+		//if (currentLife < 0)
+		//SceneManager.LoadScene (0);
+
+		return currentLife;
+	}
+
 
 	public void Transitioning ()
 	{		

@@ -34,9 +34,6 @@ public class BulletController : MonoBehaviour
 	public void SetSpeed (Vector2 _speed)
 	{		
 		this.speed = _speed * Random.Range (0, 1f) + _speed;
-		
-		//	rigidBody = GetComponent<Rigidbody2D> ();
-		//	rigidBody.velocity = _speed;
 	}
 
 	public void SetAng (float ang)

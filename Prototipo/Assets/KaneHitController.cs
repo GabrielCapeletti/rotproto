@@ -3,9 +3,11 @@ using System.Collections;
 
 public class KaneHitController : MonoBehaviour
 {
+	KaneShooterController shooter;
+
 	void Start ()
 	{
-	
+		shooter = GetComponentInParent<KaneShooterController> ();
 	}
 
 	void Update ()
@@ -14,11 +16,9 @@ public class KaneHitController : MonoBehaviour
 	}
 
 	void OnCollisionEnter2D (Collision2D col)
-	{
-		Debug.Log (col.gameObject.tag);
-		if (col.gameObject.tag == "EnemyBullet") {
-			Debug.Log ("tAKE DAMAGE");
-			GameManager.instance.DecreaseLife ();
+	{		
+		if (col.gameObject.tag == "EnemyBullet") {			
+			//	shooter.DecreaseLife ();
 		}
 	}
 }
