@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class KaneShooterController : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class KaneShooterController : MonoBehaviour
 	public float reloadTime;
 	public int playerNumber;
 
-	public int initialLife;
+	private int initialLife;
 	private int currentLife;
 
 	private LineRenderer gunTipenderer;
@@ -58,6 +59,8 @@ public class KaneShooterController : MonoBehaviour
 		particles = tommyGun.transform.GetChild (0).gameObject;
 		currentReloadTime = 0;
 		lookDirection = ((this.GetComponent<SpriteRenderer> ().flipX) ? 1 : -1);
+		initialLife = GameManager.instance.initialLife;
+		currentLife = initialLife;
 	}
 
 	public int DecreaseAmmo ()
@@ -192,9 +195,11 @@ public class KaneShooterController : MonoBehaviour
 			}
 
 			if (invertedAim) {
+				gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
 				gunTipenderer.SetPosition (1, new Vector3 (transform.position.x + Mathf.Cos (Mathf.Deg2Rad * (180 - aimAng)) * 10,
 					transform.position.y + Mathf.Sin (Mathf.Deg2Rad * (180 - aimAng)) * 10, 0));
 			} else {
+				gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
 				gunTipenderer.SetPosition (1, new Vector3 (transform.position.x + Mathf.Cos (Mathf.Deg2Rad * (aimAng)) * 10,
 					transform.position.y + Mathf.Sin (Mathf.Deg2Rad * (aimAng)) * 10, 0));
 			}
@@ -220,8 +225,8 @@ public class KaneShooterController : MonoBehaviour
 		currentLife--;
 		hudLife.RemoveLife ();
 
-		//if (currentLife < 0)
-		//SceneManager.LoadScene (0);
+		if (currentLife < 0)
+			SceneManager.LoadScene (0);
 
 		return currentLife;
 	}
@@ -229,7 +234,7 @@ public class KaneShooterController : MonoBehaviour
 
 	public void Transitioning ()
 	{		
-		transform.position = Vector2.Lerp (transform.position, this.target, 0.1f);
+		transform.position = Vector2.Lerp (transform.position, this.target, Time.deltaTime * 6f);
 		animator.Play ("rolling");
 		if (Vector2.Distance (transform.position, target) < 0.1f) {
 			this.currentState = State.UNDER_COVER;
@@ -248,7 +253,7 @@ public class KaneShooterController : MonoBehaviour
 		this.cover = _cover;
 		this.currentState = State.TRANSITIONING;
 		hitCollider.SetActive (true);
-		this.target = new Vector2 (cover.transform.position.x, cover.transform.position.y);
+		this.target = _cover.PositionOne;
 
 		rigidBody = GetComponent<Rigidbody2D> ();
 		rigidBody.velocity = Vector2.zero;
