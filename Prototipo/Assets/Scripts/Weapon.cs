@@ -11,9 +11,9 @@ public class Weapon : MonoBehaviour
 	private float fireRate;
 	private float recoil;
 	private int magSize;
-	private float reloadTime;
+	private int reloadTime;
 
-	private Weapon (float _fireRate, float _recoil, int _magSize, float _reloadTime)
+	private Weapon (float _fireRate, float _recoil, int _magSize, int _reloadTime)
 	{
 
 		this.fireRate = _fireRate;
@@ -30,7 +30,7 @@ public class Weapon : MonoBehaviour
 		get{ return recoil; }
 	}
 
-	public float MagSize {
+	public int MagSize {
 		get{ return magSize; }
 	}
 

@@ -238,7 +238,13 @@ public class KaneShooterController : MonoBehaviour
 
 	public void SetWeapon (Weapon weapon)
 	{
-		
+		GameManager.instance.initialAmmo = weapon.MagSize;
+		this.initialAmmo = weapon.MagSize;
+		this.reloadTime = weapon.ReloadTime;
+		this.recoil = weapon.Recoil;
+		this.fireRate = weapon.FireRate;
+
+		this.currentAmmo = this.initialAmmo;
 	}
 
 

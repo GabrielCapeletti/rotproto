@@ -22,9 +22,9 @@ public class BigExplosionController : MonoBehaviour
 
 	void OnTriggerEnter2D (Collider2D coll)
 	{
-		if (coll.tag == "Player") {
-			//	Debug.Log ("DANO");
-			//	coll.SendMessage ("TakeDamage");
+		if (coll.tag == "PlayerCollider") {	
+			Debug.Log (coll.gameObject.tag);
+			coll.SendMessage ("TakeDamage");
 		}
 	}
 }

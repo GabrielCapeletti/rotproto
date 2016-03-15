@@ -13,6 +13,11 @@ public class HUDAmmo : MonoBehaviour
 	void Start ()
 	{
 		initialPos = transform.position;
+		NewWeapon ();
+	}
+
+	public void NewWeapon ()
+	{
 		bullets = new GameObject[GameManager.instance.initialAmmo];
 		currentAmmo = bullets.Length - 1;
 		for (int i = 0; i < bullets.Length; i++) {
