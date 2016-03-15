@@ -19,8 +19,7 @@ public class KaneHitController : MonoBehaviour
 
 	void OnCollisionEnter2D (Collision2D col)
 	{		
-		if (col.gameObject.tag != bulletTag) {		
-			Debug.Log ("HIT");
+		if (col.gameObject.tag == "Bullet") {		
 			shooter.DecreaseLife ();
 		}
 	}

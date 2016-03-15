@@ -1,0 +1,186 @@
+fileFormatVersion: 2
+guid: ab7a80251f3abae47b8cec8992815c95
+timeCreated: 1457356506
+licenseType: Free
+TextureImporter:
+  fileIDToRecycleName:
+    21300000: Explosion-Sprite-Sheet_0
+    21300002: Explosion-Sprite-Sheet_1
+    21300004: Explosion-Sprite-Sheet_2
+    21300006: Explosion-Sprite-Sheet_3
+    21300008: Explosion-Sprite-Sheet_4
+  serializedVersion: 2
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 1
+    linearTexture: 0
+    correctGamma: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+  isReadable: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 0
+  cubemapConvolution: 0
+  cubemapConvolutionSteps: 7
+  cubemapConvolutionExponent: 1.5
+  seamlessCubemap: 0
+  textureFormat: -1
+  maxTextureSize: 2048
+  textureSettings:
+    filterMode: -1
+    aniso: 16
+    mipBias: -1
+    wrapMode: 1
+  nPOTScale: 0
+  lightmap: 0
+  rGBM: 0
+  compressionQuality: 50
+  allowsAlphaSplitting: 0
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spritePixelsToUnits: 100
+  alphaIsTransparency: 1
+  textureType: 8
+  buildTargetSettings: []
+  spriteSheet:
+    sprites:
+    - name: Explosion-Sprite-Sheet_0
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 118.2
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -3.5, y: 31}
+        - {x: -17.5, y: 31}
+        - {x: -29.5, y: 8}
+        - {x: -30.5, y: 5}
+        - {x: -29.5, y: 2}
+        - {x: -20.5, y: -19}
+        - {x: 3.5, y: -31}
+        - {x: 18.5, y: -31}
+        - {x: 36.5, y: -13}
+        - {x: 36.5, y: 5}
+        - {x: 17.5, y: 29}
+    - name: Explosion-Sprite-Sheet_1
+      rect:
+        serializedVersion: 2
+        x: 118
+        y: 0
+        width: 118.2
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -6.5, y: 55}
+        - {x: -16.5, y: 49}
+        - {x: -39.5, y: 21}
+        - {x: -39.5, y: -45}
+        - {x: -25.5, y: -48}
+        - {x: 25.5, y: -48}
+        - {x: 45.5, y: -25}
+        - {x: 45.5, y: 35}
+        - {x: 15.5, y: 55}
+    - name: Explosion-Sprite-Sheet_2
+      rect:
+        serializedVersion: 2
+        x: 236
+        y: 0
+        width: 118.2
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -13.5, y: 55}
+        - {x: -48.5, y: 35}
+        - {x: -48.5, y: -47}
+        - {x: -21.5, y: -52}
+        - {x: 24.5, y: -52}
+        - {x: 48.5, y: -41}
+        - {x: 48.5, y: 46}
+        - {x: 30.5, y: 55}
+    - name: Explosion-Sprite-Sheet_3
+      rect:
+        serializedVersion: 2
+        x: 354
+        y: 0
+        width: 118.2
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -41.5, y: 33}
+        - {x: -41.5, y: 3}
+        - {x: -29.5, y: -37}
+        - {x: 11.5, y: -37}
+        - {x: 22.5, y: -35}
+        - {x: 44.5, y: 13}
+        - {x: 44.5, y: 33}
+    - name: Explosion-Sprite-Sheet_4
+      rect:
+        serializedVersion: 2
+        x: 472
+        y: 0
+        width: 118.2
+        height: 118
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline:
+      - - {x: -33.5, y: -11}
+        - {x: -34.5, y: -12}
+        - {x: -34.5, y: -24}
+        - {x: -28.5, y: -26}
+        - {x: -19.5, y: -26}
+        - {x: -18.5, y: -25}
+        - {x: -18.5, y: -13}
+        - {x: -19.5, y: -11}
+      - - {x: -2.5, y: 12}
+        - {x: -12.5, y: 8}
+        - {x: -17.5, y: 3}
+        - {x: -17.5, y: -5}
+        - {x: -15.5, y: -11}
+        - {x: -5.5, y: -20}
+        - {x: 7.5, y: -20}
+        - {x: 11.5, y: -19}
+        - {x: 18.5, y: -9}
+        - {x: 18.5, y: 1}
+        - {x: 5.5, y: 12}
+      - - {x: 24.5, y: 4}
+        - {x: 24.5, y: -5}
+        - {x: 27.5, y: -12}
+        - {x: 36.5, y: -12}
+        - {x: 40.5, y: -6}
+        - {x: 40.5, y: 1}
+        - {x: 35.5, y: 4}
+      - - {x: -7.5, y: 34}
+        - {x: -8.5, y: 31}
+        - {x: -8.5, y: 24}
+        - {x: -2.5, y: 19}
+        - {x: 2.5, y: 19}
+        - {x: 7.5, y: 25}
+        - {x: 7.5, y: 32}
+        - {x: 2.5, y: 34}
+    outline: []
+  spritePackingTag: 
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

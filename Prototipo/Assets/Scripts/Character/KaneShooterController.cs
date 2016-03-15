@@ -18,6 +18,7 @@ public class KaneShooterController : MonoBehaviour
 	public float fireRate;
 	public float recoil;
 	public float reloadTime;
+	public float doubleTapTime;
 	public int playerNumber;
 
 	private int initialLife;
@@ -35,6 +36,13 @@ public class KaneShooterController : MonoBehaviour
 	private int currentAmmo;
 	private int lookDirection;
 	private float currentReloadTime;
+	private bool rightCoverSide = false;
+	private Collider2D collider;
+
+	private bool onDoubleTap = false;
+	private bool noDirection = true;
+	private float doubleTapCounter;
+	private bool rightPressed;
 
 	private enum State
 	{
@@ -54,6 +62,7 @@ public class KaneShooterController : MonoBehaviour
 	void Start ()
 	{
 		animator = GetComponent<Animator> ();
+		collider = GetComponent<Collider2D> ();
 		currentAmmo = GameManager.instance.initialAmmo;
 		gunTipenderer = gunTip.GetComponent<LineRenderer> ();
 		particles = tommyGun.transform.GetChild (0).gameObject;
@@ -104,6 +113,12 @@ public class KaneShooterController : MonoBehaviour
 			}
 			return;
 		}
+
+		if (Input.GetButtonDown ("ChangeSide" + playerNumber)) {
+			this.rightCoverSide = (this.rightCoverSide == false);
+			NewCover (this.cover);
+		}
+
 		if (Input.GetAxisRaw ("Horizontal" + playerNumber) > 0) {
 			Quaternion quart = new Quaternion (0, 0, 0, 0);
 			this.transform.localRotation = quart;
@@ -113,32 +128,92 @@ public class KaneShooterController : MonoBehaviour
 				if (Input.GetButtonDown ("Jump" + playerNumber)) {
 					NewCover (cover.nextUp);
 				}
+			} else if (Input.GetAxisRaw ("Vertical" + playerNumber) < 0) {
+				cover.nextDown.HighLight ();
+				if (Input.GetButtonDown ("Jump" + playerNumber)) {
+					NewCover (cover.nextDown);
+				}
 			} else {
 				cover.next.HighLight ();
 				if (Input.GetButtonDown ("Jump" + playerNumber)) {
 					NewCover (cover.next);
 				}
 			}
-		} else if (Input.GetAxisRaw ("Horizontal" + playerNumber) < 0) {
-			cover.previous.HighLight ();
+
+			DoubleTapCheck (true);
+		} else if (Input.GetAxisRaw ("Horizontal" + playerNumber) < 0) {			
 			Quaternion quart = new Quaternion (0, lookDirection * 180, 0, 0);
 			this.transform.localRotation = quart;
 			invertedAim = true;
-			if (Input.GetButtonDown ("Jump" + playerNumber)) {
-				NewCover (cover.previous);
+			if (Input.GetAxisRaw ("Vertical" + playerNumber) > 0) {
+				cover.previousUp.HighLight ();
+				if (Input.GetButtonDown ("Jump" + playerNumber)) {
+					NewCover (cover.previousUp);
+				}
+			} else if (Input.GetAxisRaw ("Vertical" + playerNumber) < 0) {
+				cover.previousDown.HighLight ();
+				if (Input.GetButtonDown ("Jump" + playerNumber)) {
+					NewCover (cover.previousDown);
+				}
+			} else {
+				cover.previous.HighLight ();
+				if (Input.GetButtonDown ("Jump" + playerNumber)) {
+					NewCover (cover.previous);
+				}
 			}
 
-		} else if (Input.GetAxisRaw ("Aim" + playerNumber) != 0) {			
+
+			DoubleTapCheck (false);
+		} else {	
+			if (!noDirection) {
+				doubleTapCounter = 0;
+			}
+			if (onDoubleTap && doubleTapCounter < doubleTapTime) {
+				onDoubleTap = true;
+			} else {
+				onDoubleTap = false;
+			}
+			doubleTapCounter += Time.deltaTime;		
+			noDirection = true;
+		}
+
+		if (Input.GetAxisRaw ("Aim" + playerNumber) != 0 && Input.GetAxisRaw ("Horizontal" + playerNumber) == 0) {		
 			this.GoToShooting ();
 		}
+	}
+
+	private void DoubleTapCheck (bool isRighSide)
+	{
+		if (rightPressed != isRighSide || (isRighSide == rightCoverSide)) {
+			onDoubleTap = false;
+		}
+
+
+
+		rightPressed = isRighSide;
+		if (noDirection) {
+			doubleTapCounter = 0;
+			if (onDoubleTap) {
+				this.rightCoverSide = (this.rightCoverSide == false);
+				this.NewCover (cover);
+			}
+		}
+		noDirection = false;
+		doubleTapCounter += Time.deltaTime;
+		if (doubleTapCounter < doubleTapTime) {
+			onDoubleTap = true;
+		} else {
+			onDoubleTap = false;
+		}		
 	}
 
 	public void GoToShooting ()
 	{
 		gunTipenderer.SetPosition (0, new Vector3 (transform.position.x, transform.position.y, 0));
 		gun.SetActive (true);
-		hitCollider.SetActive (true);
-		this.currentState = State.SHOOTING;		
+		//hitCollider.SetActive (true);
+		this.currentState = State.SHOOTING;	
+		this.cover.OffCover ();
 	}
 
 	public void AimUp ()
@@ -161,6 +236,12 @@ public class KaneShooterController : MonoBehaviour
 		}
 	}
 
+	public void SetWeapon (Weapon weapon)
+	{
+		
+	}
+
+
 	public void ShootingProjectile ()
 	{
 		particles.SetActive (true);
@@ -168,6 +249,9 @@ public class KaneShooterController : MonoBehaviour
 			currentAmmo = DecreaseAmmo ();
 			GameObject go = (GameObject)Instantiate (bullet, transform.position, Quaternion.identity);
 			go.GetComponent<BulletController> ().SetAng ((invertedAim ? 180 - aimAng : aimAng));
+			if (!invertedAim) {
+				go.transform.localScale = new Vector3 (-go.transform.localScale.x, go.transform.localScale.y, go.transform.localScale.z);
+			}
 			lastBulletTime = 0;
 			camera.ShakeCamera ();
 			aimAng += recoil;
@@ -215,7 +299,8 @@ public class KaneShooterController : MonoBehaviour
 	public void GoUndercover ()
 	{
 		particles.SetActive (false);
-		hitCollider.SetActive (false);
+		//hitCollider.SetActive (false);
+		this.cover.OnCover ();
 		this.currentState = State.UNDER_COVER;
 		gun.SetActive (false);
 	}
@@ -238,7 +323,8 @@ public class KaneShooterController : MonoBehaviour
 		animator.Play ("rolling");
 		if (Vector2.Distance (transform.position, target) < 0.1f) {
 			this.currentState = State.UNDER_COVER;
-			hitCollider.SetActive (false);
+			collider.enabled = true;
+			//	hitCollider.SetActive (false);
 			this.rigidBody.gravityScale = 1;
 		}
 	}
@@ -249,11 +335,22 @@ public class KaneShooterController : MonoBehaviour
 			this.rigidBody = GetComponent<Rigidbody2D> ();
 		}
 		this.rigidBody.gravityScale = 0;
-		
+
+		if (this.cover != null) {
+			this.cover.OffCover ();
+		}
+		_cover.OnCover ();
+
 		this.cover = _cover;
 		this.currentState = State.TRANSITIONING;
-		hitCollider.SetActive (true);
-		this.target = _cover.PositionOne;
+		//	hitCollider.SetActive (true);
+		collider.enabled = false;
+
+		if (!rightCoverSide) {
+			this.target = _cover.PositionOne;
+		} else {
+			this.target = _cover.PositionTwo;
+		}
 
 		rigidBody = GetComponent<Rigidbody2D> ();
 		rigidBody.velocity = Vector2.zero;

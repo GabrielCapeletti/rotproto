@@ -1,20 +1,23 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Diagnostics;
 
 public class BulletController : MonoBehaviour
 {
 	public float lifeTime;
 	public float spread;
 	public float modularSpeed;
+	public GameObject explosion;
 
+	private SpriteRenderer renderer;
 	private Rigidbody2D rigidBody;
 	private float currentLifeTime;
 	private Vector3 speed;
 
-
 	void Start ()
 	{
 		currentLifeTime = 0;
+		renderer = GetComponent<SpriteRenderer> ();
 	}
 
 	void Update ()
@@ -44,8 +47,13 @@ public class BulletController : MonoBehaviour
 
 	}
 
-	void OnTriggerEnter2D (Collider2D coll)
-	{
-
+	public void OnCollisionEnter2D (Collision2D coll)
+	{		
+		if (coll.gameObject.tag == "Cover") {			
+			coll.collider.SendMessage ("TakeDamage");
+		}
+		renderer.enabled = false;
+		this.speed = Vector2.zero;
+		explosion.SetActive (true);
 	}
 }
