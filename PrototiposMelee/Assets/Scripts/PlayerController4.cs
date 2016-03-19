@@ -7,41 +7,42 @@ public class PlayerController4 : MonoBehaviour {
 	 * 														VARIABLES
 	----------------------------------------------------------------------------------------------------------------------*/
 
-	// State Machine variables-------------
+	// State Machine variables--------------------------
 	enum STATES{
 		IDLE,
 		WALKING,
 		ATTACK,
 		STRANGLE,
 		ON_AIR,
-		DAMAGE
+		DAMAGE,
+		STRANGLED
 	};
 
 	STATES currentState = STATES.IDLE;
 	STATES nextState = STATES.IDLE;
-	// State Machine variables-------------
+	// State Machine variables--------------------------
 
 
-	// Grounded variables------------------
+	// Grounded variables-------------------------------
 	bool grounded = false; 			// Main variable
 	public Transform groundCheck;
 	float groundRadius = 0.2f;
 	public LayerMask groundLayer;
-	// Grounded variables------------------
+	// Grounded variables-------------------------------
 
 
-	// InputAxis variables-----------------
+	// InputAxis variables------------------------------
 	private float inputAxis;
 	public float maxSpeed = 10f;
-	// InputAxis variables-----------------
+	// InputAxis variables------------------------------
 
 
-	// Damage variables--------------------
+	// Damage variables---------------------------------
 	float damageRecoil = 1000f;
-	// Damage variables--------------------
+	// Damage variables---------------------------------
 
 
-	// Attack variables-------------------
+	// Attack variables--------------------------------
 	// Combo Variables
 	float comboMaxTime = 1f;
 	float comboMinTime = 0.3f;
@@ -53,14 +54,35 @@ public class PlayerController4 : MonoBehaviour {
 	float strangleMaxTime = 1f;
 	float strangleMinTime = 0.3f;
 	float strangleTime = 0;
-	// Attack variables-------------------
 
+	bool strangle = false;
+	public Transform strangleCheck;
+	float strangleRadius = 0.008f;
+	public LayerMask strangleLayer;
+
+	GameObject strangledEnemy;
+
+	// Attack Types
+	enum ATTACK_TYPES{
+		NORMAL_1,
+		NORMAL_2,
+		NORMAL_3,
+		NORMAL_4,
+		KNEE,
+		STRANGLE
+	};
+	// Attack variables--------------------------------
+
+	// Damage variables--------------------------------
+	bool strangled = false;
+	// Damage variables--------------------------------
 
 	// Animation Variables
 	Animator animator;
 
 
 	// Other Variables
+	public int playerNumber = 1;
 	public float jumpForce = 1000f;
 	bool facingRight= true;
 	GameObject attackCollider;
@@ -142,23 +164,23 @@ public class PlayerController4 : MonoBehaviour {
 				attackCollider.GetComponent<Renderer>().material.color = Color.blue;
 
 				if (this.GetAttack ()) {
-					if (Input.GetKey (KeyCode.X) && this.comboCount < 3) {
+					if (Input.GetButton("Fire2-"+playerNumber) && this.comboCount < 3) {
 
 						this.attackCollider.SetActive (false);
 						this.comboTime = 0f;
 						this.comboCount = 0;
 
-						this.animator.Play("scorpion-strangle-begin");
+						this.animator.Play("player-strangle-begin");
 
 						this.nextState = STATES.STRANGLE;
 
-					} else if (Input.GetKey (KeyCode.X) && this.comboCount >= 3 && this.comboCount < 5) {
+					} else if (Input.GetButton("Fire2-"+playerNumber) && this.comboCount >= 3 && this.comboCount < 5) {
 
 						this.attackCollider.SetActive (false);
-						this.comboCount = 5;
+						this.comboCount = 10;
 						this.comboTime = 0f;
 
-						this.animator.Play("scorpion-knee-in-the-face");
+						this.animator.Play("player-knee-in-the-face");
 
 					} else if (this.comboCount < 4){
 						
@@ -186,25 +208,35 @@ public class PlayerController4 : MonoBehaviour {
 
 		case STATES.STRANGLE:
 
+			this.attackCollider.SetActive (true);
 			this.strangleTime += Time.deltaTime;
 
-			if (this.strangleTime < this.strangleMinTime) {
+			this.UpdateStrangle ();
+			if (this.strangle) {
+				if (this.strangleTime < this.strangleMinTime) {
 
-			} else if (this.strangleTime > this.strangleMinTime && this.strangleTime < this.strangleMaxTime) {
+				} else if (this.strangleTime > this.strangleMinTime && this.strangleTime < this.strangleMaxTime) {
 
-				if (this.GetAttack () && Input.GetKey (KeyCode.X)) {
+					if (this.GetAttack () && Input.GetButton("Fire2-"+playerNumber)) {
 
-					this.attackCollider.SetActive (false);
+						this.strangleTime = 0f;
+
+						this.attackCollider.SetActive (true);
+
+						this.animator.Play ("player-strangle-attack");
+						this.strangledEnemy.SendMessage ("GetStrangleDamage");
+					}
+
+				} else if (this.strangleTime > this.strangleMaxTime) {
 					this.strangleTime = 0f;
-
-					this.animator.Play("scorpion-strangle-attack");
+					this.nextState = STATES.IDLE;
+					this.attackCollider.SetActive (false);
+					this.strangledEnemy.SendMessage ("ForceIdleState");
 				}
-
-			} else if (this.strangleTime > this.strangleMaxTime) {
-
+			} else {
 				this.strangleTime = 0f;
 				this.nextState = STATES.IDLE;
-			
+				this.strangledEnemy.SendMessage ("ForceIdleState");
 			}
 
 			break;
@@ -224,7 +256,12 @@ public class PlayerController4 : MonoBehaviour {
 		case STATES.DAMAGE:
 
 			this.nextState = STATES.IDLE;
-			animator.Play ("player-damage");
+			this.animator.Play ("player-damage");
+			break;
+
+		case STATES.STRANGLED:
+			this.animator.Play ("player-strangled");
+
 			break;
 
 		default:
@@ -237,10 +274,38 @@ public class PlayerController4 : MonoBehaviour {
 	}
 
 	void OnTriggerEnter2D (Collider2D other) {
-		if (other.gameObject.CompareTag ("Enemy")) {
-			other.gameObject.SendMessage ("RecieveDamage", this.comboCount);
+		switch (this.currentState) {
+		case STATES.ATTACK:
+			if (other.gameObject.CompareTag ("Enemy")) {
+				other.gameObject.SendMessage ("RecieveDamage", this.comboCount);
+			}
+			break;
+		case STATES.STRANGLE:
+			if (other.gameObject.CompareTag ("Player")) {
+				other.gameObject.SendMessage ("GetStrangled");
+				this.strangledEnemy = other.gameObject;
+			}
+
+			break;
+		}
+
+	}
+
+
+	/*
+	void OnTriggerExit2D (Collider2D other) {
+		switch (this.currentState) {
+		case STATES.STRANGLE:
+			if (other.gameObject.CompareTag ("Player")) {
+				other.gameObject.SendMessage ("GetStrangled");
+			}
+			this.currentState = STATES.IDLE;
+
+			//Debug.Log ("Strangle damage");
+			break;
 		}
 	}
+	*/
 
 
 	/*----------------------------------------------------------------------------------------------------------------------
@@ -252,16 +317,29 @@ public class PlayerController4 : MonoBehaviour {
 		this.GetComponent<Rigidbody2D> ().AddForce (new Vector2 (dir * this.damageRecoil, 100));
 	}
 
-	void UpdateInputAxis () {
-		this.inputAxis = Input.GetAxisRaw ("Horizontal") * this.maxSpeed;
+	public void GetStrangleDamage () {
+		this.animator.Play ("player-strangled-damage");
+	}
+
+	public void ForceIdleState () {
+		this.nextState = STATES.IDLE;
+	}
+
+	public void GetStrangled () {
+		this.currentState = STATES.STRANGLED;
+		this.nextState = STATES.STRANGLED;
+	}
+
+	public void UpdateInputAxis () {
+		this.inputAxis = Input.GetAxisRaw ("Horizontal"+playerNumber) * this.maxSpeed;
 	}
 
 	bool GetAttack () {
-		return Input.GetButtonDown("Fire1");
+		return Input.GetButtonDown("Fire1-"+playerNumber);
 	}
 
 	bool GetJump () {
-		return Input.GetButtonDown("Jump");
+		return Input.GetButtonDown("Jump"+playerNumber);
 	}
 
 	void Jump () {
@@ -269,8 +347,11 @@ public class PlayerController4 : MonoBehaviour {
 	}
 
 	void UpdateGrounded () {
-		this.grounded = Physics2D.OverlapCircle (this.groundCheck.position, groundRadius, groundLayer);
-		animator.SetBool ("grounded", this.grounded);
+		this.grounded = Physics2D.OverlapCircle (this.groundCheck.position, this.groundRadius, this.groundLayer);
+	}
+
+	void UpdateStrangle () {
+		this.strangle = Physics2D.OverlapCircle (this.strangleCheck.position, this.strangleRadius, this.strangleLayer);
 	}
 
 	void FixScaleX(){
@@ -281,10 +362,30 @@ public class PlayerController4 : MonoBehaviour {
 			this.facingRight = false;
 		}
 
-		if (Input.GetAxisRaw ("Horizontal") == 1 && facingRight == false) { // if Player facing left & moving right, flip
+		if (Input.GetAxisRaw ("Horizontal"+playerNumber) == 1 && facingRight == false) { // if Player facing left & moving right, flip
 			this.transform.localScale = new Vector2 (-this.transform.localScale.x, this.transform.localScale.y);
-		} else if (Input.GetAxisRaw ("Horizontal") == -1 && facingRight == true) { // if Player facing right & moving left, flip
+		} else if (Input.GetAxisRaw ("Horizontal"+playerNumber) == -1 && facingRight == true) { // if Player facing right & moving left, flip
 			this.transform.localScale = new Vector2 (-this.transform.localScale.x, this.transform.localScale.y);
 		}
 	}
+
+	/*void RecieveDamage (int type) {
+		switch (type) {
+		case int():
+			this.animator.Play ("subzero-hurt-1");
+			break;
+		case 2:
+			this.animator.Play ("subzero-hurt-2");
+			break;
+		case 3:
+			this.animator.Play ("subzero-hurt-3");
+			break;
+		case 4:
+			this.animator.Play ("subzero-hurt-3");
+			break;
+		default:
+			this.animator.Play ("subzero-hurt-4");
+			break;
+		}
+	}*/
 }
