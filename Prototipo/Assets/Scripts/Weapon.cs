@@ -4,9 +4,8 @@ using System.Collections;
 public class Weapon : MonoBehaviour
 {
 
-	public static Weapon Pistol = new Weapon (0.1f, 2, 6, 1);
-	public static Weapon TommyGun = new Weapon (1f, 0, 20, 2);
-
+	public static Weapon Pistol = new Weapon (5f, 2, 6, 1);
+	public static Weapon TommyGun = new Weapon (10f, 0, 20, 2);
 
 	private float fireRate;
 	private float recoil;

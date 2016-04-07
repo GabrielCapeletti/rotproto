@@ -4,6 +4,8 @@ using UnityEngine.SceneManagement;
 
 public class KaneShooterController : MonoBehaviour
 {
+	private const float TOLERANCE = 0.5f;
+
 	public CoverController cover;
 	public GameObject gun;
 	public GameObject tommyGun;
@@ -17,9 +19,11 @@ public class KaneShooterController : MonoBehaviour
 	[Tooltip ("balas por segundo")]
 	public float fireRate;
 	public float recoil;
+	public float transitionSpeed;
 	public float reloadTime;
 	public float doubleTapTime;
 	public int playerNumber;
+	public Sprite[] weaponSprites;
 
 	private int initialLife;
 	private int currentLife;
@@ -39,10 +43,18 @@ public class KaneShooterController : MonoBehaviour
 	private bool rightCoverSide = false;
 	private Collider2D collider;
 
+	private WeaponItemCollider inRangeWeapon;
+
+	private Vector2 movingSpeed;
+	private float transitionTime;
+	private Vector2 lastPosition;
+
 	private bool onDoubleTap = false;
 	private bool noDirection = true;
 	private float doubleTapCounter;
 	private bool rightPressed;
+	private bool weaponOnRange;
+	private Weapon currentWeaponOnRange;
 
 	private enum State
 	{
@@ -70,6 +82,8 @@ public class KaneShooterController : MonoBehaviour
 		lookDirection = ((this.GetComponent<SpriteRenderer> ().flipX) ? 1 : -1);
 		initialLife = GameManager.instance.initialLife;
 		currentLife = initialLife;
+
+		this.SetWeapon (Weapon.Pistol);
 	}
 
 	public int DecreaseAmmo ()
@@ -104,7 +118,9 @@ public class KaneShooterController : MonoBehaviour
 	}
 
 	void UnderCover ()
-	{
+	{	
+		this.WeaponControl ();
+
 		if (currentAmmo <= 0) {
 			currentReloadTime += Time.deltaTime;
 			if (currentReloadTime > reloadTime) {
@@ -114,10 +130,10 @@ public class KaneShooterController : MonoBehaviour
 			return;
 		}
 
-		if (Input.GetButtonDown ("ChangeSide" + playerNumber)) {
-			this.rightCoverSide = (this.rightCoverSide == false);
-			NewCover (this.cover);
-		}
+		//if (Input.GetButtonDown ("ChangeSide" + playerNumber)) {
+		//	this.rightCoverSide = (this.rightCoverSide == false);
+		//	NewCover (this.cover);
+		//}
 
 		if (Input.GetAxisRaw ("Horizontal" + playerNumber) > 0) {
 			Quaternion quart = new Quaternion (0, 0, 0, 0);
@@ -141,7 +157,7 @@ public class KaneShooterController : MonoBehaviour
 			}
 
 			DoubleTapCheck (true);
-		} else if (Input.GetAxisRaw ("Horizontal" + playerNumber) < 0) {			
+		} else if (Input.GetAxisRaw ("Horizontal" + playerNumber) != 0) {			
 			Quaternion quart = new Quaternion (0, lookDirection * 180, 0, 0);
 			this.transform.localRotation = quart;
 			invertedAim = true;
@@ -161,8 +177,6 @@ public class KaneShooterController : MonoBehaviour
 					NewCover (cover.previous);
 				}
 			}
-
-
 			DoubleTapCheck (false);
 		} else {	
 			if (!noDirection) {
@@ -180,6 +194,20 @@ public class KaneShooterController : MonoBehaviour
 		if (Input.GetAxisRaw ("Aim" + playerNumber) != 0 && Input.GetAxisRaw ("Horizontal" + playerNumber) == 0) {		
 			this.GoToShooting ();
 		}
+	}
+
+	public void OnItemRange (WeaponItemCollider _inRangeWeapon)
+	{
+		inRangeWeapon = _inRangeWeapon;
+		currentWeaponOnRange = _inRangeWeapon.weaponType;
+		weaponOnRange = true;
+	}
+
+	public void OutOfItemRange (WeaponItemCollider _inRangeWeapon)
+	{
+		//	if (inRangeWeapon.weaponType == currentWeaponOnRange) {
+		weaponOnRange = false;
+		//	}
 	}
 
 	private void DoubleTapCheck (bool isRighSide)
@@ -238,12 +266,19 @@ public class KaneShooterController : MonoBehaviour
 
 	public void SetWeapon (Weapon weapon)
 	{
+		if (weapon.FireRate == Weapon.Pistol.FireRate) {
+			//Muito cansado pra ligar para PERFOMANCE
+			this.tommyGun.GetComponent<SpriteRenderer> ().sprite = weaponSprites [0];
+		} else {
+			this.tommyGun.GetComponent<SpriteRenderer> ().sprite = weaponSprites [1];
+		}
+
 		GameManager.instance.initialAmmo = weapon.MagSize;
 		this.initialAmmo = weapon.MagSize;
 		this.reloadTime = weapon.ReloadTime;
 		this.recoil = weapon.Recoil;
 		this.fireRate = weapon.FireRate;
-
+		this.hudAmmo.NewWeapon ();
 		this.currentAmmo = this.initialAmmo;
 	}
 
@@ -322,13 +357,32 @@ public class KaneShooterController : MonoBehaviour
 		return currentLife;
 	}
 
+	private void WeaponControl ()
+	{
+		if (weaponOnRange) {
+			if (Input.GetButtonDown ("item" + playerNumber)) {
+				this.SetWeapon (this.currentWeaponOnRange);
+				if (inRangeWeapon != null) {
+					Destroy (inRangeWeapon.transform.parent.gameObject);
+				}
+			}
+		}
+	}
+
 
 	public void Transitioning ()
 	{		
-		transform.position = Vector2.Lerp (transform.position, this.target, Time.deltaTime * 6f);
+		//transform.position = Vector2.Lerp (transform.position, this.target, transitionTime);
+
+		transform.position += new Vector3 (this.movingSpeed.x * Time.deltaTime, this.movingSpeed.y * Time.deltaTime);
+
 		animator.Play ("rolling");
-		if (Vector2.Distance (transform.position, target) < 0.1f) {
+		this.WeaponControl ();
+
+		if (Vector2.Distance (transform.position, target) < TOLERANCE) {
 			this.currentState = State.UNDER_COVER;
+			this.lastPosition = target;
+			transform.position = target;
 			collider.enabled = true;
 			//	hitCollider.SetActive (false);
 			this.rigidBody.gravityScale = 1;
@@ -349,14 +403,19 @@ public class KaneShooterController : MonoBehaviour
 
 		this.cover = _cover;
 		this.currentState = State.TRANSITIONING;
+		this.lastPosition = transform.position;
 		//	hitCollider.SetActive (true);
-		collider.enabled = false;
+		this.collider.enabled = false;
 
 		if (!rightCoverSide) {
 			this.target = _cover.PositionOne;
 		} else {
 			this.target = _cover.PositionTwo;
 		}
+
+		this.movingSpeed = this.target - this.lastPosition;
+		this.movingSpeed.Normalize ();
+		this.movingSpeed *= this.transitionSpeed;
 
 		rigidBody = GetComponent<Rigidbody2D> ();
 		rigidBody.velocity = Vector2.zero;
